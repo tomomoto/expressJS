@@ -1,0 +1,9 @@
+{
+  "serverPort"    :80,
+  "serverHost"    :"localhost",
+  "mysqlServer"   :"localhost",
+  "mysqlPort"     :3306,
+  "mysqlUser"     :"root",
+  "mysqlPassword" :"0909",
+  "mysqlBD"       :"eventer"
+}
