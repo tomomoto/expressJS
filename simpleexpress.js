@@ -1,11 +1,11 @@
-var express     = require('express'),
-    app         = express(),
-    mysql       = require('mysql'),
-    url         = require('url'),
-    session     = require('express-session'),
-    SessionStore= require('express-mysql-session'),
-    config      = require('config'),
-    log         = require('libs/log')(module),
+var express = require('express'),
+    app = express(),
+    mysql = require('mysql'),
+    url = require('url'),
+    session = require('express-session'),
+    SessionStore = require('express-mysql-session'),
+    config = require('config'),
+    log = require('libs/log')(module),
     bodyParser = require('body-parser');
     //,cookieparser=require('cookie-parser');
 
@@ -61,21 +61,18 @@ app.use(session({
     }
 ));
 
-app.use(bodyParser());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/', function (req, res) {
-  //var sess = req.session.cookie;
+app.get('/', function (request, response) {
+  /*
+  var sess = req.session.cookie;
   res.send('Hello to EVENTER!');
-});
-
-app.post('/', function (req, res) {
-  //var sess = req.session.cookie;
-  res.send('Hello to post!');
-});
-
-app.put('/', function (req, res) {
-  //var sess = req.session.cookie;
-  res.send('Hello to put!');
+  response.writeHead(302, {
+    'Location': 'login'
+    //add other headers here...
+  });
+  response.end();*/
+  response.redirect('/login');
 });
 
 app.get('/showid', function(req,res){
@@ -94,16 +91,24 @@ app.get('/showid', function(req,res){
 });
 
 app.get('/login',function(request,response){
-  response.render('login.ejs', { message: 'loginMessage' });
+  if(request.session.authorized)
+    response.redirect('/info');
+  else {
+    log.info("Req.handl get[login] was called.");
+    response.render('login.ejs', {message: ''});
+  }
   //response.render('login.ejs', { message: request.flash('loginMessage') });
 });
 
 app.post('/login',function(request,response){
-  log.info("Request handler 'login' was called.");
+  log.info("Req.handl post[login] was called.");
   if(request.session.authorized){
+    /*
     response.writeHead(200, {"Content-Type": "text/plain"});
     response.write("U are already logged :) U can use network.");
     response.end();
+    */
+    response.redirect('/description');
   }
   else {
     //var parsedUrl = url.parse(request.url, true); // true to get query as object
@@ -127,38 +132,45 @@ app.post('/login',function(request,response){
               request.session.user_id = rows[0].user_id;
               request.session.authorized = true;
               // request.session.cookie.originalMaxAge = 5;
-              //request.session.cookie._expires = 7 * 24 * 3600 * 1000;
+              request.session.cookie.originalMaxAge = 365 * 24 * 3600 * 1000;
               //request.session.cookie.originalMaxAge = 29;
               //var hour = 3600000;
               //request.session.cookie.expires = new Date(Date.now() + hour);
               //request.session.cookie.originalMaxAge = 29;
 
-              log.info("LOGGED");
-              response.writeHead(200, {"Content-Type": "application/json"});
-              response.write(JSON.stringify(rows));
-              log.info(JSON.stringify(rows));
+              log.info("LOGGED"+JSON.stringify(rows));
+              //response.writeHead(200, {"Content-Type": "application/json"});
+              //response.write(JSON.stringify(rows));
+              //log.info(JSON.stringify(rows));
+              response.redirect('/info');
             }
             else {
-              response.writeHead(200, {"Content-Type": "Text/plain"});
-              response.write("Incorrect login params");
-              log.error("Incorrect login");
+              //response.writeHead(200, {"Content-Type": "Text/plain"});
+              //response.write("Incorrect login params");
+              log.error("Incorrect parameters.");
+              //response.end();
+              response.render('login.ejs',{message:'Incorrect parameters.'});
             }
           }
           else {
             log.error(err);
-            response.writeHead(200, {"Content-Type": "Text/plain"});
-            response.write("Error while performing Query.");
+            //response.writeHead(200, {"Content-Type": "Text/plain"});
+            //response.write("Error while performing Query.");
             log.error('Error while performing Query.');
+            //response.render('login.ejs',{message:'Incorrect parameters.'});
+            //response.end();
           }
-          response.end();
+          //response.end();
         });
     connection.end();
+    //response.redirect('/info');
+    //response.render('info.ejs',{description:'lalka',message:''});
   }
 });
 
 app.get('/info',function(request,response){
+  log.info("Req.handl get[info] was called.");
   if(request.session.authorized) {
-    log.info("Request handler 'myinfo' was called.");
     var schema = 'name, surname, birth, vk_profile, email, sex, description';
     var parsedUrl = url.parse(request.url, true);
     var queryAsObject = parsedUrl.query;
@@ -170,23 +182,37 @@ app.get('/info',function(request,response){
         function (err, rows, fields) {
           log.info("Request handler 'user_id' was called.");
           if (!err) {
-            response.writeHead(200, {"Content-Type": "application/json"});
-            response.write(JSON.stringify(rows));
+            //response.writeHead(200, {"Content-Type": "application/json"});
+            //response.write(JSON.stringify(rows));
             log.info(JSON.stringify(rows));
-            response.end();
+            log.info(rows[0].birth.toLocaleDateString());
+            response.render('info.ejs',
+                {name:rows[0].name,
+                  surname:rows[0].surname,
+                  birth:rows[0].birth.toLocaleDateString(),
+                  vk_profile:rows[0].vk_profile,
+                  email:rows[0].email,
+                  sex:rows[0].sex,
+                  description:rows[0].description,
+                  message:''});
+            //response.end();
           } else {
-            response.writeHead(200, {"Content-Type": "Text/plain"});
-            response.write('Query error');
-            response.end();
+            //response.writeHead(200, {"Content-Type": "Text/plain"});
+            //response.write('Query error');
+            //response.end();
             log.error('Error while performing Query.' + err);
+            response.render('login',{message:'тут какая то лажа, хз как попал сюда.'});
           }
         });
     connection.end();
   }
   else  {
+    /*
     response.writeHead(200, {"Content-Type": "Text/plain"});
     response.write("U are not logged. Authorized : " + request.session.authorized);
-    response.end();
+    response.end();*/
+    log.debug("ber");
+    response.redirect('login');
   }
 });
 
@@ -203,39 +229,48 @@ app.get('/logout', function (request, response) {
 });
 
 app.get('/join',function(request, response) {
-  if(request.session.authorized) {
-    log.info("Request handler 'create user' was called.");
+  if (!request.session.authorized)
+    response.render('join.ejs', {message: 'Auth please.' });
+  else
+    response.render('info.ejs',{message:'b'});
+});
+
+app.post('/join',function(request, response) {
+  log.info("Request handler 'create user' was called.");
+  if(!request.session.authorized) {
     var parsedUrl = url.parse(request.url, true); // true to get query as object
     var queryAsObject = parsedUrl.query;
     for (var obj in queryAsObject) {
       log.info("Query: " + obj);
     }
     var new_user = {
-      name: queryAsObject['name'],
-      surname: queryAsObject['surname'],
-      birth: queryAsObject['birth'],
-      password: queryAsObject['password'],
-      vk_profile: queryAsObject['vk_profile'],
-      email: queryAsObject['email'],
-      sex: queryAsObject['sex'],
-      description: queryAsObject['description']
+      //name: queryAsObject['name'],
+      //surname: queryAsObject['surname'],
+      //birth: queryAsObject['birth'],
+      password: request.body['password'],
+      //vk_profile: queryAsObject['vk_profile'],
+      email: request.body['email'],
+      //sex: queryAsObject['sex'],
+      //description: queryAsObject['description']
     };
     var connection = mysql.createConnection(options.mysql_options);
     //connection.connect();
     var query = connection.query('INSERT INTO users SET ?', new_user,
         function (err, rows, fields) {
           log.info(query.sql);
-          response.writeHead(200, {"Content-Type": "application/json"});
+          //response.writeHead(200, {"Content-Type": "application/json"});
           if (!err) {
-            response.write(JSON.stringify(rows));
+            //response.write(JSON.stringify(rows));
             log.info(JSON.stringify(rows));
+            response.redirect('/login');
           }
           else {
-            log.error(err);
-            response.write("Error while perfoming Query.");
+            //log.error(err);
+            //response.write("Error while perfoming Query.");
+            response.render('join.ejs',{message:'Login used... Or something else.'});
             log.error('Error while performing Query.');
           }
-          response.end();
+          //response.end();
         });
     connection.end();
   }
@@ -540,38 +575,40 @@ app.get('/go_to_event',function go_to_event(request,response){
 });
 
 app.get('/description',function description(request,response){
+  if(request.session.authorized)
+    response.render('description.ejs', {message: 'kokoko'});
+  else
+    response.render('login.ejs',{message: 'Mister! U are not logged!'});
+});
+
+app.post('/description',function description(request,response){
   if(request.session.authorized) {
     log.info("Request handler for description is called");
-    var parsedUrl = url.parse(request.url, true);
-    var queryAsObject = parsedUrl.query;
-    for (var concrette_query in queryAsObject) {
-      log.info("Query... " + concrette_query);
+    //var parsedUrl = url.parse(request.url, true);
+    //var queryAsObject = parsedUrl.query;
+    for (var element in request.body) {
+      log.info("Query... " + element);
     }
 
     var user_new = {};
-    if (queryAsObject['name']) {
-      user_new["name"] = queryAsObject['name'];
-    };
-    if (queryAsObject['surname']) {
-      user_new["surname"] = queryAsObject['surname'];
-    };
-    if (queryAsObject['birth']) {
-      user_new["birth"] = queryAsObject['birth'];
-    };
-    if (queryAsObject['vk_profile']) {
-      user_new["vk_profile"] = queryAsObject['vk_profile'];
-    };
-    if (queryAsObject['sex']) {
-      user_new["sex"] = queryAsObject['sex'];
-    };
-    if (queryAsObject['description']) {
-      user_new["description"] = queryAsObject['description'];
-    };
+    if (request.body['name'])
+      user_new["name"] = request.body['name'];
+    if (request.body['surname'])
+      user_new["surname"] = request.body['surname'];
+    if (request.body['birth'])
+      user_new["birth"] = request.body['birth'];
+    if (request.body['vk_profile'])
+      user_new["vk_profile"] = request.body['vk_profile'];
+    if (request.body['sex'])
+      user_new["sex"] = request.body['sex'];
+    if (request.body['description'])
+      user_new["description"] = request.body['description'];
 
     if (!user_new["name"] && !user_new["surname"] && !user_new["birth"] && !user_new["vk_profile"] && !user_new["sex"] && !user_new["description"]) { // no user parameters is query
+      response.render('description.ejs',{message:'Empty req.'});
       log.error("Empty query!");
-      response.write("Empty query!");
-      response.end();
+      //response.write("Empty query!");
+      //response.end();
     }
     else {
       var connection = mysql.createConnection(options.mysql_options);
@@ -580,26 +617,31 @@ app.get('/description',function description(request,response){
           request.session.user_id, user_new,
           function (err, rows, fields) {
             log.info(mysqlQuery.sql);
-            response.writeHead(200, {"Content-Type": "application/json"});
+            //response.writeHead(200, {"Content-Type": "application/json"});
             if (!err) {
-              response.write(JSON.stringify(rows));
+              response.redirect('info');
+              //response.write(JSON.stringify(rows));
               log.info(JSON.stringify(rows));
             }
             else {
               log.error(err);
-              response.write("Error while perfoming Query.");
+              response.render('description.ejs',{message:'something fked.'});
+              //response.write("Error while perfoming Query.");
               log.error('Error while performing Query.');
             }
-            response.end();
+            //response.end();
           }
       );
       connection.end();
     }
   }
   else  {
+    /*
     response.writeHead(200, {"Content-Type": "Text/plain"});
     response.write("U are not logged. Authorized : " + request.session.authorized);
     response.end();
+    */
+    response.render('login.ejs',{message: 'Mister! U are not logged!'});
   }
 });
 
