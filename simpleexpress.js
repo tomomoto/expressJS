@@ -203,22 +203,26 @@ app.get('/logout', function (request, response) {
 });
 
 app.get('/join',function(request, response) {
-  if(request.session.authorized) {
-    log.info("Request handler 'create user' was called.");
+  response.render('join.ejs', { message: 'kokoko' });
+});
+
+app.post('/join',function(request, response) {
+  log.info("Request handler 'create user' was called.");
+  if(!request.session.authorized) {
     var parsedUrl = url.parse(request.url, true); // true to get query as object
     var queryAsObject = parsedUrl.query;
     for (var obj in queryAsObject) {
       log.info("Query: " + obj);
     }
     var new_user = {
-      name: queryAsObject['name'],
-      surname: queryAsObject['surname'],
-      birth: queryAsObject['birth'],
-      password: queryAsObject['password'],
-      vk_profile: queryAsObject['vk_profile'],
-      email: queryAsObject['email'],
-      sex: queryAsObject['sex'],
-      description: queryAsObject['description']
+      //name: queryAsObject['name'],
+      //surname: queryAsObject['surname'],
+      //birth: queryAsObject['birth'],
+      password: request.body['password'],
+      //vk_profile: queryAsObject['vk_profile'],
+      email: request.body['email'],
+      //sex: queryAsObject['sex'],
+      //description: queryAsObject['description']
     };
     var connection = mysql.createConnection(options.mysql_options);
     //connection.connect();
