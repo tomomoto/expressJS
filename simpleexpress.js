@@ -229,14 +229,10 @@ app.get('/logout', function (request, response) {
 });
 
 app.get('/join',function(request, response) {
-<<<<<<< HEAD
   if (!request.session.authorized)
     response.render('join.ejs', {message: 'Auth please.' });
   else
     response.render('info.ejs',{message:'b'});
-=======
-  response.render('join.ejs', { message: 'kokoko' });
->>>>>>> origin/master
 });
 
 app.post('/join',function(request, response) {
