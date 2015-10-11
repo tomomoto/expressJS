@@ -2,11 +2,16 @@
 <!doctype html>
 <html>
 <head>
-    <title>Add Description</title>
+    <title>Events</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+    <!--<style>
+        body        { padding-top:80px; }
+    </style>
+    -->
+
 </head>
 <body>
 <div class="container">
@@ -22,7 +27,7 @@
             </div>
             <div class="collapse navbar-collapse" id="myNavbar">
                 <ul class="nav navbar-nav">
-                    <li><a href="/">Home</a></li>
+                    <li class="active"><a href="/">Home</a></li>
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">Events <span class="caret"></span></a>
                         <ul class="dropdown-menu">
@@ -31,7 +36,7 @@
                             <li><a href="#">Page 1-3</a></li>
                         </ul>
                     </li>
-                    <li class="active"><a href="/description">Description</a></li>
+                    <li><a href="/description">Description</a></li>
                     <li><a href="/events">foo</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
@@ -48,51 +53,22 @@
     </nav>
     <div class="col-sm-6 col-sm-offset-3">
 
-        <h1><span class="fa fa-sign-in"></span> Add description</h1>
+        <h1><span class="fa fa-sign-in"></span> Events</h1>
 
         <!-- show any messages that come back with authentication -->
-        <% if (message.length > 0) { %>
+        <% if (message.length > 0 ) { %>
         <div class="alert alert-danger"><%= message %></div>
         <% } %>
 
         <!-- LOGIN FORM -->
-        <form action="/description" method="post">
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" class="form-control" name="name">
-            </div>
-            <div class="form-group">
-                <label>Surname</label>
-                <input type="text" class="form-control" name="surname">
-            </div>
-            <div class="form-group">
-                <label>Birth</label>
-                <input type="text" class="form-control" name="birth">
-            </div>
-            <div class="form-group">
-                <label>VK Profile</label>
-                <input type="text" class="form-control" name="vk_profile">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="text" class="form-control" name="email">
-            </div>
-            <div class="form-group">
-                <label for="select_sex">Sex</label>
-                <select class="form-control" id="select_sex" name="sex">
-                    <option></option>
-                    <option>male</option>
-                    <option>female</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea class="form-control" rows="2" name="description" style="resize:vertical"></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-warning btn-lg">Add info</button>
-        </form>
-
+        <% for (var i=0;i<rows.length;i++) { %>
+        <div class="panel panel-primary">
+            <div class="panel-heading"><%=rows[i].name%></div>
+            <div class="panel-body"><%=rows[i].description%></div>
+            <button type="button" class="btn btn-warning btn-sm">Edit</button>
+            <button type="button" class="btn btn-warning btn-sm">Delete</button>
+        </div>
+        <% } %>
         <hr>
 
         <p>Need an account? <a href="/join">Join</a></p>

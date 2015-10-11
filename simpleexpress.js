@@ -6,16 +6,8 @@ var express = require('express'),
     SessionStore = require('express-mysql-session'),
     config = require('config'),
     log = require('libs/log')(module),
-    bodyParser = require('body-parser');
-    //,cookieparser=require('cookie-parser');
-
-/*var mysql_options   ={
-    host     : 'localhost',
-    port     : '3336',
-    user     : 'root',
-    password : '0909',
-    database : 'eventer'
-}*/
+    bodyParser = require('body-parser'),
+    favicon = require('serve-favicon');
 
 app.set('view engine', 'ejs');
 
@@ -41,6 +33,8 @@ var options = {
 var mysql_connection_for_session = mysql.createConnection(options.mysql_options);
 var mysql_session_storage  = new SessionStore(options,mysql_connection_for_session);
 
+app.use(favicon(__dirname + '\\favicon.ico'));
+
 app.use(session({
       secret            : 'i_do_not_know_but_it_is_needed',
       name              : 'eventer_nyam_nyam',
@@ -58,20 +52,11 @@ app.use(session({
       //genid             : function(req) {
       // return genuuid() // use UUIDs for session IDs
       //}
-    }
-));
+    }));
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/', function (request, response) {
-  /*
-  var sess = req.session.cookie;
-  res.send('Hello to EVENTER!');
-  response.writeHead(302, {
-    'Location': 'login'
-    //add other headers here...
-  });
-  response.end();*/
   response.redirect('/login');
 });
 
@@ -95,7 +80,7 @@ app.get('/login',function(request,response){
     response.redirect('/info');
   else {
     log.info("Req.handl get[login] was called.");
-    response.render('login.ejs', {message: ''});
+    response.render('login.ejs', {message: '',user_id:''});
   }
   //response.render('login.ejs', { message: request.flash('loginMessage') });
 });
@@ -113,56 +98,57 @@ app.post('/login',function(request,response){
   else {
     //var parsedUrl = url.parse(request.url, true); // true to get query as object
     //var queryAsObject = parsedUrl.query;
-    for (var obj in request.body) {
-      log.info("Body req: " + obj);
-    }
     var login_user = {
       email: request.body['email'],
       password: request.body['password']
     };
-    var connection = mysql.createConnection(options.mysql_options);
-    //connection.connect();
-    var query = connection.query('SELECT user_id from users where email ="' + login_user.email + '" AND password = "' + login_user.password + '"',
-        function (err, rows, fields) {
-          log.info(query.sql);
-          //response.writeHead(200, {"Content-Type": "application/json"});
-          if (!err) {
-            if (rows.length === 1) {
-              log.info("User ID : " + rows[0].user_id);
-              request.session.user_id = rows[0].user_id;
-              request.session.authorized = true;
-              // request.session.cookie.originalMaxAge = 5;
-              request.session.cookie.originalMaxAge = 365 * 24 * 3600 * 1000;
-              //request.session.cookie.originalMaxAge = 29;
-              //var hour = 3600000;
-              //request.session.cookie.expires = new Date(Date.now() + hour);
-              //request.session.cookie.originalMaxAge = 29;
+    if(request.body['password'] && request.body['email']) {
+      var connection = mysql.createConnection(options.mysql_options);
+      //connection.connect();
+      var query = connection.query('SELECT user_id from users where email ="' + login_user.email + '" AND password = "' + login_user.password + '"',
+          function (err, rows, fields) {
+            log.info(query.sql);
+            //response.writeHead(200, {"Content-Type": "application/json"});
+            if (!err) {
+              if (rows.length === 1) {
+                log.info("User ID : " + rows[0].user_id);
+                request.session.user_id = rows[0].user_id;
+                request.session.authorized = true;
+                // request.session.cookie.originalMaxAge = 5;
+                request.session.cookie.originalMaxAge = 365 * 24 * 3600 * 1000;
+                //request.session.cookie.originalMaxAge = 29;
+                //var hour = 3600000;
+                //request.session.cookie.expires = new Date(Date.now() + hour);
+                //request.session.cookie.originalMaxAge = 29;
 
-              log.info("LOGGED"+JSON.stringify(rows));
-              //response.writeHead(200, {"Content-Type": "application/json"});
-              //response.write(JSON.stringify(rows));
-              //log.info(JSON.stringify(rows));
-              response.redirect('/info');
+                log.info("LOGGED" + JSON.stringify(rows));
+                //response.writeHead(200, {"Content-Type": "application/json"});
+                //response.write(JSON.stringify(rows));
+                //log.info(JSON.stringify(rows));
+                response.redirect('/info');
+              }
+              else {
+                //response.writeHead(200, {"Content-Type": "Text/plain"});
+                //response.write("Incorrect login params");
+                log.error("Incorrect parameters.");
+                //response.end();
+                response.render('login.ejs', {message: 'Incorrect parameters.', user_id: ''});
+              }
             }
             else {
+              log.error(err);
               //response.writeHead(200, {"Content-Type": "Text/plain"});
-              //response.write("Incorrect login params");
-              log.error("Incorrect parameters.");
+              //response.write("Error while performing Query.");
+              log.error('Error while performing Query.');
+              //response.render('login.ejs',{message:'Incorrect parameters.'});
               //response.end();
-              response.render('login.ejs',{message:'Incorrect parameters.'});
             }
-          }
-          else {
-            log.error(err);
-            //response.writeHead(200, {"Content-Type": "Text/plain"});
-            //response.write("Error while performing Query.");
-            log.error('Error while performing Query.');
-            //response.render('login.ejs',{message:'Incorrect parameters.'});
             //response.end();
-          }
-          //response.end();
-        });
-    connection.end();
+          });
+      connection.end();
+    }
+    else
+      response.render('login.ejs',{message:'Fill query parameters.',user_id:''});
     //response.redirect('/info');
     //response.render('info.ejs',{description:'lalka',message:''});
   }
@@ -180,27 +166,31 @@ app.get('/info',function(request,response){
           //queryAsObject['user_id'],
         request.session.user_id,
         function (err, rows, fields) {
-          log.info("Request handler 'user_id' was called.");
+          log.info("Req.handl get[info] was called.");
           if (!err) {
             //response.writeHead(200, {"Content-Type": "application/json"});
             //response.write(JSON.stringify(rows));
             log.info(JSON.stringify(rows));
-            log.info(rows[0].birth.toLocaleDateString());
+            var birth;
+            if(rows[0].birth) birth = rows[0].birth.toLocaleDateString();
+            //log.info(rows[0].birth.toLocaleDateString());
             response.render('info.ejs',
                 {name:rows[0].name,
                   surname:rows[0].surname,
-                  birth:rows[0].birth.toLocaleDateString(),
+                  birth:birth,
                   vk_profile:rows[0].vk_profile,
                   email:rows[0].email,
                   sex:rows[0].sex,
                   description:rows[0].description,
-                  message:''});
+                  message:'',
+                  user_id:request.session.user_id.toString()
+                });
             //response.end();
           } else {
             //response.writeHead(200, {"Content-Type": "Text/plain"});
             //response.write('Query error');
             //response.end();
-            log.error('Error while performing Query.' + err);
+            log.error('Error while performing Query.' + err.toString());
             response.render('login',{message:'тут какая то лажа, хз как попал сюда.'});
           }
         });
@@ -219,20 +209,23 @@ app.get('/info',function(request,response){
 app.get('/logout', function (request, response) {
   if (request.session.authorized) {
     request.session.authorized = false;
-    response.send('Please, return!');
+    response.redirect('/login');
+    //response.send('Please, return!');
   }
   else  {
-    response.writeHead(200, {"Content-Type": "Text/plain"});
-    response.write("U are not logged. Authorized : " + request.session.authorized);
-    response.end();
+    //response.writeHead(200, {"Content-Type": "Text/plain"});
+    //response.write("U are not logged. Authorized : " + request.session.authorized);
+    //response.end();
+    response.render('login.ejs',{message:'You are not logged!',user_id:''});
   }
 });
 
 app.get('/join',function(request, response) {
-  if (!request.session.authorized)
-    response.render('join.ejs', {message: 'Auth please.' });
+  if (request.session.authorized)
+    //response.render('info.ejs',{message:'You are already logged. Try logout -> join',user_id:request.session.user_id});
+    response.redirect('/info');
   else
-    response.render('info.ejs',{message:'b'});
+    response.render('join.ejs', {message: '',user_id:'' });
 });
 
 app.post('/join',function(request, response) {
@@ -253,71 +246,30 @@ app.post('/join',function(request, response) {
       //sex: queryAsObject['sex'],
       //description: queryAsObject['description']
     };
-    var connection = mysql.createConnection(options.mysql_options);
-    //connection.connect();
-    var query = connection.query('INSERT INTO users SET ?', new_user,
-        function (err, rows, fields) {
-          log.info(query.sql);
-          //response.writeHead(200, {"Content-Type": "application/json"});
-          if (!err) {
-            //response.write(JSON.stringify(rows));
-            log.info(JSON.stringify(rows));
-            response.redirect('/login');
-          }
-          else {
-            //log.error(err);
-            //response.write("Error while perfoming Query.");
-            response.render('join.ejs',{message:'Login used... Or something else.'});
-            log.error('Error while performing Query.');
-          }
-          //response.end();
-        });
-    connection.end();
-  }
-  else  {
-    response.writeHead(200, {"Content-Type": "Text/plain"});
-    response.write("U are not logged. Authorized : " + request.session.authorized);
-    response.end();
-  }
-});
-
-app.get('/new_event',function (request, response){
-  if(request.session.authorized) {
-    log.info("Request handler 'create event' was called.");
-    var parsedUrl = url.parse(request.url, true); // true to get query as object
-    var queryAsObject = parsedUrl.query;
-    for (var obj in queryAsObject) {
-      log.info("Query: " + obj);
+    if(request.body['password'] && request.body['email'])
+    {
+      var connection = mysql.createConnection(options.mysql_options);
+      var query = connection.query('INSERT INTO users SET ?', new_user,
+          function (err, rows, fields) {
+            log.info(query.sql);
+            //response.writeHead(200, {"Content-Type": "application/json"});
+            if (!err) {
+              //response.write(JSON.stringify(rows));
+              log.info(JSON.stringify(rows));
+              response.redirect('/login');
+            }
+            else {
+              //log.error(err);
+              //response.write("Error while perfoming Query.");
+              response.render('join.ejs', {message: 'Login used... Or something else.', user_id: ''});
+              log.error('Error while performing Query.');
+            }
+            //response.end();
+          });
+      connection.end();
     }
-    var new_event = {
-      //owner_id    :queryAsObject['owner_id'],
-      owner_id: request.session.user_id,
-      name: queryAsObject['name'],
-      description: queryAsObject['description'],
-      place: queryAsObject['place'],
-      date: queryAsObject['date'],
-      starting: queryAsObject['starting'],
-      ending: queryAsObject['ending'],
-      geo: queryAsObject['geo']
-    };
-    var connection = mysql.createConnection(options.mysql_options);
-    //connection.connect();
-    var query = connection.query('INSERT INTO events SET ?', new_event,
-        function (err, rows, fields) {
-          log.info(query.sql);
-          response.writeHead(200, {"Content-Type": "application/json"});
-          if (!err) {
-            response.write(JSON.stringify(rows));
-            log.info(JSON.stringify(rows));
-          }
-          else {
-            log.error(err);
-            response.write("Error while perfoming Query.");
-            log.error('Error while performing Query.');
-          }
-          response.end();
-        });
-    connection.end();
+    else
+      response.render('join.ejs',{message:'Fill query parameters.',user_id:''});
   }
   else  {
     response.writeHead(200, {"Content-Type": "Text/plain"});
@@ -470,24 +422,29 @@ app.get('/events',function my_events(request, response){
 //      + queryAsObject['user_id'],
         function (err, rows, fields) {
           log.info(query.sql);
-          response.writeHead(200, {"Content-Type": "application/json"});
+          //response.writeHead(200, {"Content-Type": "application/json"});
           if (!err) {
-            response.write(JSON.stringify(rows));
+            response.render('events.ejs',{message:'',user_id:request.session.user_id.toString(),rows:rows});
+            //response.write(JSON.stringify(rows));
             log.info(JSON.stringify(rows));
           }
           else {
-            log.error(err);
-            response.write("Error while perfoming Query.");
-            log.error('Error while performing Query.');
+            log.error(err.toString());
+            response.render('events.ejs',{message:'Query error...',user_id:request.session.user_id.toString()});
+            //response.write("Error while perfoming Query.");
           }
-          response.end();
+          //response.end();
         });
     connection.end();
   }
-  else {
+  /*else {
     response.writeHead(200, {"Content-Type": "Text/plain"});
-    response.write("U are not logged. Authorized : " + request.session.authorized);
+    response.write("U are not logged. Authorizedo : " + request.session.authorized);
     response.end();
+  }*/
+  else {
+    log.info("Req.handl get[events] was called.");
+    response.render('login.ejs', {message: 'Restricted.',user_id:''});
   }
 });
 
@@ -575,15 +532,16 @@ app.get('/go_to_event',function go_to_event(request,response){
 });
 
 app.get('/description',function description(request,response){
+  log.info("Req. handl get['/description']");
   if(request.session.authorized)
-    response.render('description.ejs', {message: 'kokoko'});
+    response.render('description.ejs', {message: '',user_id:request.session.user_id.toString()});
   else
-    response.render('login.ejs',{message: 'Mister! U are not logged!'});
+    response.render('login.ejs',{message: 'Mister! U are not logged!',user_id:''});
 });
 
 app.post('/description',function description(request,response){
   if(request.session.authorized) {
-    log.info("Request handler for description is called");
+    log.info("Req. handl post['/description']");
     //var parsedUrl = url.parse(request.url, true);
     //var queryAsObject = parsedUrl.query;
     for (var element in request.body) {
@@ -591,22 +549,25 @@ app.post('/description',function description(request,response){
     }
 
     var user_new = {};
-    if (request.body['name'])
+    //if (request.body['name'])
       user_new["name"] = request.body['name'];
-    if (request.body['surname'])
+    //if (request.body['surname'])
       user_new["surname"] = request.body['surname'];
-    if (request.body['birth'])
+    if (!request.body['birth'])
+      user_new["birth"] = null;
+    else
       user_new["birth"] = request.body['birth'];
-    if (request.body['vk_profile'])
+    //if (request.body['vk_profile'])
       user_new["vk_profile"] = request.body['vk_profile'];
-    if (request.body['sex'])
+   // if (request.body['sex'])
       user_new["sex"] = request.body['sex'];
-    if (request.body['description'])
+    //if (request.body['description'])
       user_new["description"] = request.body['description'];
 
     if (!user_new["name"] && !user_new["surname"] && !user_new["birth"] && !user_new["vk_profile"] && !user_new["sex"] && !user_new["description"]) { // no user parameters is query
-      response.render('description.ejs',{message:'Empty req.'});
       log.error("Empty query!");
+      response.render('description.ejs',{message:'Empty req.',user_id:request.session.user_id});
+      return;
       //response.write("Empty query!");
       //response.end();
     }
@@ -619,15 +580,15 @@ app.post('/description',function description(request,response){
             log.info(mysqlQuery.sql);
             //response.writeHead(200, {"Content-Type": "application/json"});
             if (!err) {
-              response.redirect('info');
               //response.write(JSON.stringify(rows));
               log.info(JSON.stringify(rows));
+              response.redirect('/info');
             }
             else {
-              log.error(err);
-              response.render('description.ejs',{message:'something fked.'});
               //response.write("Error while perfoming Query.");
-              log.error('Error while performing Query.');
+              log.error('Error while performing Query. '+err.toString());
+              response.redirect('/info');
+              //response.render('info.ejs',{message:'something fked.',user_id:request.session.user_id});
             }
             //response.end();
           }
@@ -645,6 +606,62 @@ app.post('/description',function description(request,response){
   }
 });
 
+app.get('/new_event',function (request, response){
+  log.info("Req. handl get['/new_event']");
+  if(request.session.authorized)
+    response.render('new_event.ejs', {message: '',user_id:request.session.user_id.toString()});
+  else
+    response.render('login.ejs',{message: 'Mister! U are not logged!',user_id:''});
+});
+
+app.post('/new_event',function (request, response){
+  log.info("Req. handl post['/new_event']");
+  if(request.session.authorized) {
+    var user_event = {};
+    user_event["owner_id"] = request.session.user_id;
+    user_event["name"] = request.body['name'];
+    user_event["description"] = request.body['description'];
+    if (!request.body['date'])
+      user_event["date"] = null;
+    else
+      user_event["date"] = request.body['date'];
+    user_event["place"] = request.body['place'];
+    user_event["starting"] = request.body['starting'];
+    user_event["ending"] = request.body['ending'];
+    user_event["geo"] = request.body['geolocation'];
+    if (!user_event["name"] && !user_event["description"] && !user_event["date"] && !user_event["place"] && !user_event["starting"] && !user_event["ending"] && !user_event["geo"]) { // no user parameters is query
+      log.error("Empty query!");
+      response.render('new_event.ejs',{message:'Empty request.',user_id:request.session.user_id});
+      //response.write("Empty query!");
+      return;
+    }
+    var connection = mysql.createConnection(options.mysql_options);
+    //connection.connect();
+    var query = connection.query('INSERT INTO events SET ?', user_event,
+        function (err, rows, fields) {
+          log.info(query.sql);
+          //response.writeHead(200, {"Content-Type": "application/json"});
+          if (!err) {
+            //response.write(JSON.stringify(rows));
+            log.info(JSON.stringify(rows));
+            response.redirect('/events');
+          }
+          else {
+            log.error(err.toString());
+            //response.write("Error while perfoming Query.");
+            log.error('Error while performing Query.');
+            response.render('new_event.ejs',{message:err.toString(),user_id:request.session.user_id});
+          }
+          //response.end();
+        });
+    connection.end();
+  }
+  else  {
+    response.redirect('/login');
+  }
+});
+
+//app.use('/favicon.ico', express.static('favicon.ico'));
 
 //app.use(session(sess));
 
