@@ -1,0 +1,30 @@
+<!-- views/join.ejs -->
+<!doctype html>
+<html>
+<head>
+    <title>Node Authentication</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+    <script src="/scripts/NavigationBar.js"></script>
+</head>
+<body>
+<div class="container">
+    <nav class="navbar navbar-default" id="navBar">
+        <script>
+            fetchNavigationBar(<%=user_id%>)
+        </script>
+    </nav>
+    <div class="col-sm-6 col-sm-offset-3">
+
+        <h1><span class="glyphicon glyphicon-remove-circle"></span> Page not found</h1>
+        <hr>
+
+        <p>Already have an account? <a href="/login">Login</a></p>
+        <p>Or go <a href="/">home</a>.</p>
+
+    </div>
+</div>
+</body>
+</html>
