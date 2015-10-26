@@ -150,11 +150,11 @@ app.post('/login',function(request,response){
     else
       response.render('login.ejs',{message:'Fill query parameters.',user_id:0});
     //response.redirect('/info');
-    //response.render('info.ejs',{description:'lalka',message:''});
+    //response.render('edit.ejs',{description:'lalka',message:''});
   }
 });
 
-app.get('/info',function(request,response){
+app.get('/edit',function(request,response){
   log.info("Req.handl get[info] was called.");
   if(request.session.authorized) {
     var schema = 'name, surname, birth, vk_profile, email, sex, description';
@@ -174,7 +174,7 @@ app.get('/info',function(request,response){
             var birth;
             if(rows[0].birth) birth = rows[0].birth.toLocaleDateString();
             //log.info(rows[0].birth.toLocaleDateString());
-            response.render('info.ejs',
+            response.render('edit.ejs',
                 {name:rows[0].name,
                   surname:rows[0].surname,
                   birth:birth,
@@ -222,7 +222,7 @@ app.get('/logout', function (request, response) {
 
 app.get('/join',function(request, response) {
   if (request.session.authorized)
-    //response.render('info.ejs',{message:'You are already logged. Try logout -> join',user_id:request.session.user_id});
+    //response.render('edit.ejs',{message:'You are already logged. Try logout -> join',user_id:request.session.user_id});
     response.redirect('/');
   else
     response.render('join.ejs', {message: '',user_id:0 });
@@ -708,13 +708,13 @@ app.post('/description',function description(request,response){
             if (!err) {
               //response.write(JSON.stringify(rows));
               log.info(JSON.stringify(rows));
-              response.redirect('/info');
+              response.redirect('/id'+request.session.user_id);
             }
             else {
               //response.write("Error while perfoming Query.");
               log.error('Error while performing Query. '+err.toString());
-              response.redirect('/info');
-              //response.render('info.ejs',{message:'something fked.',user_id:request.session.user_id});
+              response.redirect('/edit');
+              //response.render('edit.ejs',{message:'something fked.',user_id:request.session.user_id});
             }
             //response.end();
           }

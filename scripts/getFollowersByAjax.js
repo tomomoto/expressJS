@@ -19,7 +19,7 @@ function attachFollowers(parsedData){
         var followerP = document.createElement('p');
         //eventDiv.className = "panel panel-success";
     //<a href="url">link text</a>
-        followerP.innerHTML ='<a href=http://192.168.100.6/id'+parsedData[i].user_id+'>'+parsedData[i].surname+' '+parsedData[i].name+'</a>';
+        followerP.innerHTML ='<a href=http://25.63.3.200/id'+parsedData[i].user_id+'>'+parsedData[i].surname+' '+parsedData[i].name+'</a>';
         /*+
             '<div class="panel-heading">'+parsedData[i].name+'</div>'+
             '<div class="panel-body">'+parsedData[i].description+'</div>'+

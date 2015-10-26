@@ -1,4 +1,4 @@
-function fetchNavigationBar(user_id){
+function fetchNavigationBar(user_id, doToActiveMenuElementId){
     var navBarContainerHTML = document.createElement('div');
     navBarContainerHTML.className = "container-fluid";
     var navBarContainerString =
@@ -12,12 +12,12 @@ function fetchNavigationBar(user_id){
         '</div>'+
             '<div class="collapse navbar-collapse" id="myNavbar">'+
                 '<ul class="nav navbar-nav">'+
-                    '<li class="active"><a href="/">Home</a></li>'+
-                    '<li class="dropdown">'+
+                    '<li id="menuHome"><a href="/">Home</a></li>'+
+                    '<li id="menuEvents" class="dropdown">'+
                     '<a class="dropdown-toggle" data-toggle="dropdown" href="#">Events <span class="caret"></span></a>'+
                         '<ul class="dropdown-menu">'+
-                            '<li><a href="/events">Im created</a></li>'+
-                            '<li><a href="/newEvent">New event</a></li>'+
+                            '<li id="menuCreated"><a href="/events">Created</a></li>'+
+                            '<li id="menuNewEvent"><a href="/newEvent">New event</a></li>'+
                             '<li><a href="#">Page 1-3</a></li>'+
                         '</ul>'+
                     '</li>'+
@@ -39,4 +39,8 @@ function fetchNavigationBar(user_id){
         '</div>';
     navBarContainerHTML.innerHTML=navBarContainerString;
     document.getElementById('navBar').appendChild(navBarContainerHTML);
+    if (doToActiveMenuElementId){
+        var MenuElementById = document.getElementById(doToActiveMenuElementId);
+        MenuElementById.className+=" active";
+    }
 }

@@ -30,6 +30,17 @@
             <h1><span class="fa fa-user"></span> <%='id'+profile.user_id%></h1>
             <h1><%=profile.name+' '+profile.surname%></h1>
             <a href="#information" class="btn btn-info" data-toggle="collapse"><span class="fa fa-info"></span> Info</a>
+            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#followers" onclick="getFollowersByAjax(<%=profile.user_id%>)"><span class="fa fa-users"></span> Followers</button>
+            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#followed" onclick="getFollowedByAjax(<%=profile.user_id%>)"><span class="fa fa-eye"></span> Followed</button>
+            <p></p>
+            <div id="information" class="collapse">
+                <div class="well">
+                    <p>Description: <%=profile.description%></p>
+                    <p>Birth: <%=profile.birth%></p>
+                    <p>Sex: <%=profile.sex%></p>
+                    <p>vk: <a href=https://vk.com/<%=profile.vk_profile%>><%=profile.vk_profile%></a></p>
+                </div>
+            </div>
             <%if (follower.length){%>
             <button type="button" class="btn btn-info" id="SubscribeBTN" onclick="UnFollowUserAjax(<%=profile.user_id%>)">
                 <span class="fa fa-check-square-o"></span> Subscribed
@@ -39,9 +50,6 @@
                 <span class="fa fa-street-view"></span> Subscribe
             </button>
             <%}%>
-            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#followers" onclick="getFollowersByAjax(<%=profile.user_id%>)"><span class="fa fa-users"></span> Followers</button>
-            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#followed" onclick="getFollowedByAjax(<%=profile.user_id%>)"><span class="fa fa-eye"></span> Followed</button>
-            <p></p>
             <div class="modal fade" id="followed" role="dialog">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -80,15 +88,6 @@
                     </div>
                 </div>
             </div>
-            <div id="information" class="collapse">
-                <div class="well">
-                    <p>Description: <%=profile.description%></p>
-                    <p>Birth: <%=profile.birth%></p>
-                    <p>Sex: <%=profile.sex%></p>
-                    <p>vk: <a href=https://vk.com/<%=profile.vk_profile%>><%=profile.vk_profile%></a></p>
-                </div>
-            </div>
-
             <hr>
 
             <!-- show any messages that come back with authentication -->

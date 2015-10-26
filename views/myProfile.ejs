@@ -25,20 +25,16 @@
 <div class="container">
     <nav class="navbar navbar-default" id="navBar">
         <script>
-            fetchNavigationBar(<%=user_id%>)
+            fetchNavigationBar(<%=user_id%>,"menuHome")
         </script>
     </nav>
     <div class="container">
         <div class="col-sm-6 col-sm-offset-3">
             <h1><span class="fa fa-home"></span> <%='id'+profile.user_id%></h1>
             <h1><%=profile.name+' '+profile.surname%></h1>
-
             <a href="#information" class="btn btn-info" data-toggle="collapse"><span class="fa fa-info"></span> Info</a>
-            <a href="/info" class="btn btn-info" role="button">
-                <span class="fa fa-pencil-square-o"></span> Edit
-            </a>
-            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#followers" onclick="getFollowersByAjax(<%=user_id%>)"><span class="fa fa-users"></span> Followers</button>
-            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#followed" onclick="getFollowedByAjax(<%=user_id%>)"><span class="fa fa-eye"></span> Followed</button>
+            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#followers" onclick="getFollowersByAjax(<%=user_id%>); this.onclick=null;"><span class="fa fa-users"></span> Followers</button>
+            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#followed" onclick="getFollowedByAjax(<%=user_id%>); this.onclick=null;"><span class="fa fa-eye"></span> Followed</button>
             <p></p>
             <div id="information" class="collapse">
                 <div class="well">
@@ -48,6 +44,9 @@
                     <p>vk: <a href=https://vk.com/<%=profile.vk_profile%>><%=profile.vk_profile%></a></p>
                 </div>
             </div>
+            <a href="/edit" class="btn btn-info" role="button">
+                <span class="fa fa-pencil-square-o"></span> Edit
+            </a>
             <div class="modal fade" id="followers" role="dialog">
                 <div class="modal-dialog">
                     <div class="modal-content">
